@@ -109,7 +109,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import LoanCalculator from './pages/Dashborad';
 import LoanRequestForm from './pages/CreateTask';
-import SlipGeneration from './pages/SlipGeneration';
+
 import Home from './pages/Home';
 // import AdminDashboard from './pages/AdminDashboard';
 import { ToastContainer } from 'react-toastify';
@@ -122,7 +122,28 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+//   useEffect(() => {
+//     const checkAuth = async () => {
+//       try {
+//         const token = localStorage.getItem('token');
+//         const userData = localStorage.getItem('user');
+        
+//         if (token && userData) {
+//           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+//           setUser(JSON.parse(userData));
+//         }
+//       } catch (error) {
+//         console.error('Auth check error:', error);
+//         logout();
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     checkAuth();
+//   }, []);
+
+useEffect(() => {
     const checkAuth = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -139,7 +160,7 @@ function App() {
         setLoading(false);
       }
     };
-
+  
     checkAuth();
   }, []);
 

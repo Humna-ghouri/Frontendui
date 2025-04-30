@@ -27,7 +27,8 @@ const SignIn = () => {
       const response = await axios.post('http://localhost:5000/api/auth/signin', {
         email,
         password
-      }, {
+      },
+       {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -53,6 +54,9 @@ const SignIn = () => {
       setLoading(false);
     }
   };
+  
+  
+
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-black via-gray-900 to-black text-white py-12 px-4 sm:px-6 lg:px-8 font-sans">
