@@ -24,7 +24,7 @@ const SignIn = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/signin', {
+      const response = await axios.post('https://backendui.onrender.com/api/auth/signin', {
         email,
         password
       },

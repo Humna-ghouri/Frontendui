@@ -27,7 +27,7 @@ const Dashboard = () => {
     const fetchTodos = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get('http://localhost:5000/api/todos', {
+        const { data } = await axios.get('https://backendui.onrender.com/api/todos', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setTasks(data.todos);
@@ -77,7 +77,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const { data } = await axios.put(
-        `http://localhost:5000/api/todos/${taskId}`,
+        `https://backendui.onrender.com/api/todos/${taskId}`,
         editFormData,
         { headers: { Authorization: `Bearer ${token}` }
       });
@@ -121,7 +121,7 @@ const Dashboard = () => {
       if (confirm.isConfirmed) {
         const token = localStorage.getItem('token');
         const response = await axios.delete(
-          `http://localhost:5000/api/todos/${id}`, 
+          `https://backendui.onrender.com/api/todos/${id}`, 
           {
             headers: { Authorization: `Bearer ${token}` }
           }
