@@ -169,12 +169,12 @@ function HomePage() {
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-600">
             Your Tasks
           </h1>
-          <button
+          {/* <button
             onClick={() => navigate('/loan-request')}
             className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-pink-400/50 transition-all duration-300 transform hover:-translate-y-1"
           >
             <FiPlusCircle className="h-5 w-5" /> Add New Task
-          </button>
+          </button> */}
         </div>
 
         {tasks.length === 0 ? (
