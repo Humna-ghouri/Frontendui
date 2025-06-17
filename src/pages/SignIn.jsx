@@ -1,12 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../App';
-import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
+import { FiMail, FiLock, FiLogIn, FiEye, FiEyeOff } from 'react-icons/fi';
+import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useContext(AuthContext);
@@ -14,49 +16,54 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
-    
+
     setLoading(true);
     setError('');
 
     try {
-      const response = await axios.post('https://backendui.onrender.com/api/auth/signin', {
-        email,
-        password
-      },
-       {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        validateStatus: (status) => status < 500
-      });
+      const response = await axios.post(
+        `https://backend-ui-1-a43x.onrender.com/api/auth/signin`,
+        { email, password },
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
 
       if (response.data.success) {
+        if (!response.data.token || !response.data.user) {
+          throw new Error('Invalid response from server');
+        }
+
         login(response.data.token, response.data.user);
-        navigate('/dashboard');
+
+        Swal.fire({
+          title: 'Success!',
+          text: 'You have successfully logged in!',
+          icon: 'success',
+          background: '#1a1a1a',
+          color: '#fff'
+        }).then(() => {
+          navigate('/dashboard');
+        });
       } else {
         setError(response.data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
       if (error.response) {
-        setError(error.response.data.message || 'Login failed');
+        setError(error.response.data.message || `Login failed (${error.response.status})`);
       } else if (error.request) {
-        setError('Network error. Please try again.');
+        setError('Network error. Please check your connection.');
       } else {
-        setError('An error occurred. Please try again.');
+        setError(error.message || 'An unexpected error occurred');
       }
     } finally {
       setLoading(false);
     }
   };
-  
-  
-
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-black via-gray-900 to-black text-white py-12 px-4 sm:px-6 lg:px-8 font-sans">
@@ -95,13 +102,20 @@ const SignIn = () => {
             <div className="relative">
               <FiLock className="absolute left-3 top-3.5 text-gray-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-pink-400 rounded-xl bg-black text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 shadow-inner transition-all duration-300"
+                className="w-full pl-10 pr-10 py-3 border-2 border-pink-400 rounded-xl bg-black text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 shadow-inner transition-all duration-300"
                 placeholder="Enter your password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3.5 text-gray-400 hover:text-pink-400 transition"
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
             </div>
           </div>
 
@@ -130,8 +144,8 @@ const SignIn = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-400">
             Don't have an account?{' '}
-            <button 
-              onClick={() => navigate('/signup')} 
+            <button
+              onClick={() => navigate('/signup')}
               className="text-pink-400 hover:text-pink-600 underline transition-all duration-300"
             >
               Sign Up
