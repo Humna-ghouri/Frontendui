@@ -11,27 +11,30 @@ function HomePage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
-useEffect(() => {
-  const fetchTodos = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/todos/all');
-      
-      if (response.data && response.data.success) {
-        setTodos(response.data.todos);
-      } else {
-        throw new Error('Invalid response format');
+ useEffect(() => {
+    const fetchTodos = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/todos/all`
+        );
+        
+        if (response.data && response.data.success) {
+          setTodos(response.data.todos);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setError(err.response?.data?.message || err.message || 'Failed to load todos');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to load todos');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchTodos();
-}, []);
+    fetchTodos();
+  }, []);
 
+  
   const filteredTodos = todos.filter(todo => {
     const matchesSearch = todo.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (todo.description && todo.description.toLowerCase().includes(searchTerm.toLowerCase()));

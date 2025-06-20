@@ -19,18 +19,12 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   // Verify token on initial load
-  useEffect(() => {
+ useEffect(() => {
     const verifyToken = async () => {
       if (token) {
         try {
-          // Use this line if using Vite (recommended)
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-          
-          // Or use this line if using Create React App
-          // const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-          
           const response = await axios.get(
-            `${apiUrl}/api/auth/verify`,
+            `${import.meta.env.VITE_API_URL}/api/auth/verify`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`

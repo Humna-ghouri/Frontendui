@@ -14,6 +14,8 @@ const SignIn = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -26,7 +28,7 @@ const SignIn = () => {
 
     try {
       const response = await axios.post(
-        `https://backend-ui-1-a43x.onrender.com/api/auth/signin`,
+        `${API_URL}/api/auth/signin`,
         { email, password },
         {
           headers: { 'Content-Type': 'application/json' }

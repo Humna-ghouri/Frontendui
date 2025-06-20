@@ -17,8 +17,7 @@ const SignUp = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Use this exact API base URL
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL;
 
   const validate = () => {
     const newErrors = {};
@@ -45,15 +44,19 @@ const SignUp = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await axios.post(`https://backend-ui-1-a43x.onrender.com/api/auth/signup`, {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await axios.post(
+        `${API_URL}/api/auth/signup`,
+        {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
 
       if (response.data.success) {
         login(response.data.token, response.data.user);

@@ -1,231 +1,288 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  FiPlus, FiEdit2, FiTrash2, FiClock, 
-  FiList, FiSearch, FiFilter, FiX 
-} from 'react-icons/fi';
+// import React, { useState, useEffect, useMemo } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { 
+//   FiPlus, FiEdit2, FiTrash2, FiClock, 
+//   FiList, FiSearch, FiFilter, FiX 
+// } from 'react-icons/fi';
+// import axios from 'axios';
+// import Swal from 'sweetalert2';
+// import moment from 'moment';
+
+// const Dashboard = () => {
+//   const [tasks, setTasks] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [filter, setFilter] = useState('all');
+//   const [searchTerm, setSearchTerm] = useState('');
+//   const [editingTask, setEditingTask] = useState(null);
+//   const [editFormData, setEditFormData] = useState({
+//     title: '',
+//     description: '',
+//     status: 'pending',
+//     priority: 'medium',
+//     dueDate: ''
+//   });
+//   const [isUpdating, setIsUpdating] = useState(false);
+//   const navigate = useNavigate();
+
+// const BASE_URL = import.meta.env.VITE_API_URL;
+
+//   // Fetch todos on component mount
+//   useEffect(() => {
+//     const fetchTodos = async () => {
+//       try {
+//         const token = localStorage.getItem('token');
+//         if (!token) {
+//           throw new Error('No authentication token found');
+//         }
+
+//         const response = await axios.get(`${BASE_URL}/api/todos`, {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         });
+
+//         setTasks(response.data?.todos || []);
+//         setError(null);
+//       } catch (err) {
+//         console.error('Failed to fetch todos:', err);
+//         setError(err.response?.data?.message || 'Failed to load tasks. Please try again.');
+//         if (err.response?.status === 401) {
+//           localStorage.removeItem('token');
+//           navigate('/signin');
+//         }
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchTodos();
+//   }, [navigate, BASE_URL]);
+
+//   // Calculate statistics
+//   const stats = useMemo(() => ({
+//     total: tasks.length,
+//     completed: tasks.filter(t => t.status === 'completed').length,
+//     pending: tasks.filter(t => t.status === 'pending').length,
+//     processing: tasks.filter(t => t.status === 'in-progress').length,
+//   }), [tasks]);
+
+//   // Filter tasks based on selected filter and search term
+//   const filteredTasks = useMemo(() => 
+//     tasks.filter(task => {
+//       const matchesStatus = 
+//         filter === 'all' || 
+//         task.status === filter;
+      
+//       const matchesSearch = searchTerm 
+//         ? task.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+//           task.description?.toLowerCase().includes(searchTerm.toLowerCase())
+//         : true;
+      
+//       return matchesStatus && matchesSearch;
+//     }),
+//     [tasks, filter, searchTerm]
+//   );
+// const fetchAllTasks = async () => {
+//   try {
+//     const token = localStorage.getItem('token');
+//     if (!token) {
+//       navigate('/login');
+//       return;
+//     }
+
+//     const BASE_URL = 'http://localhost:5000'; // or your production URL
+//     const response = await axios.get(`${BASE_URL}/api/todos/all`, {
+//       headers: { Authorization: `Bearer ${token}` }
+//     });
+
+//     console.log('Response data:', response.data); // Debug log
+//     setTasks(response.data.todos);
+    
+//   } catch (err) {
+//     console.error('Full error:', err);
+//     if (err.response?.status === 404) {
+//       setError('Endpoint not found - check backend routes');
+//     } else if (err.response?.status === 401) {
+//       navigate('/login');
+//     } else {
+//       setError(err.message);
+//     }
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+//   const handleCreateTask = () => navigate('/create-task');
+  
+//   const handleEditTask = (task) => {
+//     setEditingTask(task._id);
+//     setEditFormData({
+//       title: task.title || '',
+//       description: task.description || '',
+//       status: task.status || 'pending',
+//       priority: task.priority || 'medium',
+//       dueDate: task.dueDate ? moment(task.dueDate).format('YYYY-MM-DD') : ''
+//     });
+//   };
+
+//   const handleUpdateTask = async (taskId) => {
+//     setIsUpdating(true);
+//     try {
+//       const token = localStorage.getItem('token');
+//       if (!token) throw new Error('No authentication token found');
+
+//       const { data } = await axios.put(
+//         `${BASE_URL}/api/todos/${taskId}`,
+//         editFormData,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`
+//           }
+//         }
+//       );
+
+//       if (data.success && data.todo) {
+//         setTasks(prevTasks => 
+//           prevTasks.map(task => 
+//             task._id === taskId ? { ...task, ...data.todo } : task
+//           )
+//         );
+//         setEditingTask(null);
+//         Swal.fire({
+//           title: 'Success!',
+//           text: data.message || 'Task updated successfully.',
+//           icon: 'success',
+//           background: '#1a1a1a',
+//           color: '#fff'
+//         });
+//       }
+//     } catch (err) {
+//       console.error('Update error:', err);
+//       let errorMessage = err.response?.data?.message || 'Failed to update task.';
+      
+//       if (err.response?.data?.errors) {
+//         errorMessage = err.response.data.errors.join('\n');
+//       }
+      
+//       Swal.fire({
+//         title: 'Error!',
+//         text: errorMessage,
+//         icon: 'error',
+//         background: '#1a1a1a',
+//         color: '#fff'
+//       });
+//     } finally {
+//       setIsUpdating(false);
+//     }
+//   };
+
+//   const handleDeleteTask = async (id) => {
+//     try {
+//       const confirm = await Swal.fire({
+//         title: 'Are you sure?',
+//         text: "This will delete the task!",
+//         icon: 'warning',
+//         showCancelButton: true,
+//         confirmButtonText: 'Yes, delete it!',
+//         background: '#1a1a1a',
+//         color: '#fff',
+//         confirmButtonColor: '#ec4899'
+//       });
+
+//       if (confirm.isConfirmed) {
+//         const token = localStorage.getItem('token');
+//         if (!token) throw new Error('No authentication token found');
+
+//         await axios.delete(
+//           `${BASE_URL}/api/todos/${id}`,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`
+//             }
+//           }
+//         );
+
+//         setTasks(prevTasks => prevTasks.filter(t => t._id !== id));
+//         Swal.fire({
+//           title: 'Deleted!',
+//           text: 'Task has been deleted.',
+//           icon: 'success',
+//           background: '#1a1a1a',
+//           color: '#fff'
+//         });
+//       }
+//     } catch (err) {
+//       console.error('Delete Error:', err);
+//       Swal.fire({
+//         title: 'Error!',
+//         text: err.response?.data?.message || 'Failed to delete task',
+//         icon: 'error',
+//         background: '#1a1a1a',
+//         color: '#fff'
+//       });
+//     }
+//   };
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import SignIn from '../pages/SignIn';
+import SignUp from '../pages/SignUp';
+import CreateTask from '../pages/CreateTask';
+import Home from '../pages/Home';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
-import Swal from 'sweetalert2';
-import moment from 'moment';
 
-const Dashboard = () => {
-  const [tasks, setTasks] = useState([]);
+function App() {
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [editingTask, setEditingTask] = useState(null);
-  const [editFormData, setEditFormData] = useState({
-    title: '',
-    description: '',
-    status: 'pending',
-    priority: 'medium',
-    dueDate: ''
-  });
-  const [isUpdating, setIsUpdating] = useState(false);
-  const navigate = useNavigate();
 
-  const BASE_URL = import.meta.env.MODE === 'development'
-    ? 'http://localhost:5000'
-    : 'https://your-production-url.com';
+  const login = (token, userData) => {
+    localStorage.setItem('token', token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setUser(userData);
+  };
 
-  // Fetch todos on component mount
+  const logout = () => {
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+  };
+
   useEffect(() => {
-    const fetchTodos = async () => {
+    const checkAuth = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
+        if (token) {
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL}/api/auth/verify`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          );
 
-        const response = await axios.get(`${BASE_URL}/api/todos`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setTasks(response.data?.todos || []);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch todos:', err);
-        setError(err.response?.data?.message || 'Failed to load tasks. Please try again.');
-        if (err.response?.status === 401) {
-          localStorage.removeItem('token');
-          navigate('/signin');
+          if (response.data.success) {
+            setUser(response.data.user);
+          } else {
+            logout();
+          }
         }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        logout();
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTodos();
-  }, [navigate, BASE_URL]);
+    checkAuth();
+  }, []);
 
-  // Calculate statistics
-  const stats = useMemo(() => ({
-    total: tasks.length,
-    completed: tasks.filter(t => t.status === 'completed').length,
-    pending: tasks.filter(t => t.status === 'pending').length,
-    processing: tasks.filter(t => t.status === 'in-progress').length,
-  }), [tasks]);
-
-  // Filter tasks based on selected filter and search term
-  const filteredTasks = useMemo(() => 
-    tasks.filter(task => {
-      const matchesStatus = 
-        filter === 'all' || 
-        task.status === filter;
-      
-      const matchesSearch = searchTerm 
-        ? task.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-          task.description?.toLowerCase().includes(searchTerm.toLowerCase())
-        : true;
-      
-      return matchesStatus && matchesSearch;
-    }),
-    [tasks, filter, searchTerm]
-  );
-const fetchAllTasks = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    const BASE_URL = 'http://localhost:5000'; // or your production URL
-    const response = await axios.get(`${BASE_URL}/api/todos/all`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    console.log('Response data:', response.data); // Debug log
-    setTasks(response.data.todos);
-    
-  } catch (err) {
-    console.error('Full error:', err);
-    if (err.response?.status === 404) {
-      setError('Endpoint not found - check backend routes');
-    } else if (err.response?.status === 401) {
-      navigate('/login');
-    } else {
-      setError(err.message);
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const handleCreateTask = () => navigate('/create-task');
-  
-  const handleEditTask = (task) => {
-    setEditingTask(task._id);
-    setEditFormData({
-      title: task.title || '',
-      description: task.description || '',
-      status: task.status || 'pending',
-      priority: task.priority || 'medium',
-      dueDate: task.dueDate ? moment(task.dueDate).format('YYYY-MM-DD') : ''
-    });
-  };
-
-  const handleUpdateTask = async (taskId) => {
-    setIsUpdating(true);
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
-
-      const { data } = await axios.put(
-        `${BASE_URL}/api/todos/${taskId}`,
-        editFormData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      if (data.success && data.todo) {
-        setTasks(prevTasks => 
-          prevTasks.map(task => 
-            task._id === taskId ? { ...task, ...data.todo } : task
-          )
-        );
-        setEditingTask(null);
-        Swal.fire({
-          title: 'Success!',
-          text: data.message || 'Task updated successfully.',
-          icon: 'success',
-          background: '#1a1a1a',
-          color: '#fff'
-        });
-      }
-    } catch (err) {
-      console.error('Update error:', err);
-      let errorMessage = err.response?.data?.message || 'Failed to update task.';
-      
-      if (err.response?.data?.errors) {
-        errorMessage = err.response.data.errors.join('\n');
-      }
-      
-      Swal.fire({
-        title: 'Error!',
-        text: errorMessage,
-        icon: 'error',
-        background: '#1a1a1a',
-        color: '#fff'
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleDeleteTask = async (id) => {
-    try {
-      const confirm = await Swal.fire({
-        title: 'Are you sure?',
-        text: "This will delete the task!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!',
-        background: '#1a1a1a',
-        color: '#fff',
-        confirmButtonColor: '#ec4899'
-      });
-
-      if (confirm.isConfirmed) {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No authentication token found');
-
-        await axios.delete(
-          `${BASE_URL}/api/todos/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
-
-        setTasks(prevTasks => prevTasks.filter(t => t._id !== id));
-        Swal.fire({
-          title: 'Deleted!',
-          text: 'Task has been deleted.',
-          icon: 'success',
-          background: '#1a1a1a',
-          color: '#fff'
-        });
-      }
-    } catch (err) {
-      console.error('Delete Error:', err);
-      Swal.fire({
-        title: 'Error!',
-        text: err.response?.data?.message || 'Failed to delete task',
-        icon: 'error',
-        background: '#1a1a1a',
-        color: '#fff'
-      });
-    }
-  };
-
+ 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-tr from-black via-gray-900 to-black flex justify-center items-center">

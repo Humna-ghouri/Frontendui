@@ -17,36 +17,40 @@ function CreateTask() {
 
 // Inside handleSubmit function
 const handleCreate = async () => {
-  try {
-    const token = localStorage.getItem('token'); // ✅ token frontend pe saved hai?
-    if (!token) {
-      Swal.fire('Error', 'No token found. Please login again.', 'error');
-      return;
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        Swal.fire('Error', 'No token found. Please login again.', 'error');
+        return;
+      }
+
+      const newTodo = {
+        title,
+        description,
+        priority,
+        dueDate,
+      };
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/todos`, 
+        newTodo,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+        }
+      );
+
+      Swal.fire('Success', 'Task created successfully!', 'success');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Create Error:', error.response?.data || error.message);
+      Swal.fire('Error', error.response?.data?.message || 'Something went wrong.', 'error');
     }
-
-    const newTodo = {
-      title,
-      description,
-      priority,
-      dueDate,
-    };
-
-    const response = await axios.post('http://localhost:5000/api/todos', newTodo, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      withCredentials: true, // optional: if your backend uses credentials
-    });
-
-    Swal.fire('Success', 'Task created successfully!', 'success');
-    navigate('/dashboard'); // or reload tasks
-  } catch (error) {
-    console.error('Create Error:', error.response?.data || error.message);
-    Swal.fire('Error', error.response?.data?.message || 'Something went wrong.', 'error');
-  }
-};
-
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-tr from-black via-gray-900 to-black text-white py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-md mx-auto bg-gradient-to-b from-gray-900 to-black rounded-3xl shadow-2xl p-8 md:max-w-2xl transition-all duration-500 hover:shadow-pink-500/50">
