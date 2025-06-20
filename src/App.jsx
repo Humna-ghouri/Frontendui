@@ -97,7 +97,7 @@
 
 // export default App;
 // src/App.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import SignIn from './pages/SignIn';
@@ -114,7 +114,6 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Use consistent environment variable
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const login = (token, userData) => {
@@ -135,13 +134,14 @@ function App() {
         const token = localStorage.getItem('token');
         if (token) {
           const res = await axios.get(
-            `${API_URL}/api/auth/me`,  // Changed from verify to me
+            `${API_URL}/auth/me`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           if (res.data.success) setUser(res.data.user);
           else logout();
         }
-      } catch {
+      } catch (err) {
+        console.error('Auth check error:', err);
         logout();
       } finally {
         setLoading(false);
@@ -150,7 +150,13 @@ function App() {
     checkAuth();
   }, []);
 
-  if (loading) return <div className="text-white text-center mt-10">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="w-12 h-12 border-4 border-pink-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
