@@ -114,6 +114,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Use consistent environment variable
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const login = (token, userData) => {
     localStorage.setItem('token', token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -132,7 +135,7 @@ function App() {
         const token = localStorage.getItem('token');
         if (token) {
           const res = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/auth/verify`,
+            `${API_URL}/api/auth/me`,  // Changed from verify to me
             { headers: { Authorization: `Bearer ${token}` } }
           );
           if (res.data.success) setUser(res.data.user);
