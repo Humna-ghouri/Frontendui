@@ -225,14 +225,15 @@
 //   };
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import SignIn from '../pages/SignIn';
-import SignUp from '../pages/SignUp';
-import CreateTask from '../pages/CreateTask';
-import Home from '../pages/Home';
+import Navbar from './components/Navbar';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
+import Dashboard from './pages/Dashboard';
+import CreateTask from './pages/CreateTask';
+import Home from './pages/Home';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from './context/AuthContext';
 import axios from 'axios';
 
 function App() {
