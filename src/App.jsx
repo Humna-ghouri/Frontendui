@@ -1,3 +1,4 @@
+
 // import React, { useState, useEffect } from 'react';
 // import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 // import Navbar from './components/Navbar';
@@ -15,20 +16,34 @@
 //   const [user, setUser] = useState(null);
 //   const [loading, setLoading] = useState(true);
 
+//   const login = (token, userData) => {
+//     localStorage.setItem('token', token);
+//     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+//     setUser(userData);
+//   };
+
+//   const logout = () => {
+//     localStorage.removeItem('token');
+//     delete axios.defaults.headers.common['Authorization'];
+//     setUser(null);
+//   };
+
 //   useEffect(() => {
 //     const checkAuth = async () => {
 //       try {
 //         const token = localStorage.getItem('token');
 //         if (token) {
-//           const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/verify`, {
-//             headers: {
-//               Authorization: `Bearer ${token}`
+//           const response = await axios.get(
+//             `${import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL}/api/auth/verify`,
+//             {
+//               headers: {
+//                 Authorization: `Bearer ${token}`
+//               }
 //             }
-//           });
+//           );
 
 //           if (response.data.success) {
 //             setUser(response.data.user);
-//             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 //           } else {
 //             logout();
 //           }
@@ -43,18 +58,6 @@
 
 //     checkAuth();
 //   }, []);
-
-//   const login = (token, userData) => {
-//     localStorage.setItem('token', token);
-//     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-//     setUser(userData);
-//   };
-
-//   const logout = () => {
-//     localStorage.removeItem('token');
-//     delete axios.defaults.headers.common['Authorization'];
-//     setUser(null);
-//   };
 
 //   if (loading) {
 //     return (
@@ -93,6 +96,7 @@
 // }
 
 // export default App;
+// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -127,56 +131,29 @@ function App() {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const response = await axios.get(
-            `${import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL}/api/auth/verify`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            }
+          const res = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/auth/verify`,
+            { headers: { Authorization: `Bearer ${token}` } }
           );
-
-          if (response.data.success) {
-            setUser(response.data.user);
-          } else {
-            logout();
-          }
+          if (res.data.success) setUser(res.data.user);
+          else logout();
         }
-      } catch (error) {
-        console.error('Auth check error:', error);
+      } catch {
         logout();
       } finally {
         setLoading(false);
       }
     };
-
     checkAuth();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-900">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-pink-500"></div>
-      </div>
-    );
-  }
+  if (loading) return <div className="text-white text-center mt-10">Loading...</div>;
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
       <Router>
         <Navbar />
-        <ToastContainer 
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="dark"
-        />
+        <ToastContainer theme="dark" />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/signin" element={!user ? <SignIn /> : <Navigate to="/dashboard" />} />
