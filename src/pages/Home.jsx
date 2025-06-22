@@ -171,24 +171,19 @@ function HomePage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
-  // Define API URL with fallback
-  const API_URL = import.meta.env.VITE_API_URL || 'https://backend-ui-1-a43x.onrender.com';
+  const API_URL = 'https://backend-ui-1-a43x.onrender.com';
 
   const fetchTodos = async () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching from:', `${API_URL}/api/todos/all`);
-      
-      const response = await axios.get(
-        `${API_URL}/api/todos/all`,
-        {
-          timeout: 10000,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
+      const response = await axios.get(`${API_URL}/api/todos/all`, {
+        timeout: 10000,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true
+      });
       
       if (response.data?.success) {
         setTodos(response.data.todos);
@@ -223,9 +218,7 @@ function HomePage() {
   const filteredTodos = todos.filter(todo => {
     const matchesSearch = todo.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (todo.description && todo.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    
     const matchesStatus = statusFilter === 'all' || todo.status === statusFilter;
-    
     return matchesSearch && matchesStatus;
   });
 
