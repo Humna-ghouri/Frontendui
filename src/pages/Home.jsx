@@ -171,7 +171,7 @@ function HomePage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
-  const API_URL = 'https://backend-ui-1-a43x.onrender.com';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://backend-ui-1-a43x.onrender.com';
 
   const fetchTodos = async () => {
     setLoading(true);
@@ -179,15 +179,11 @@ function HomePage() {
     try {
       const response = await axios.get(`${API_URL}/api/todos/all`, {
         timeout: 10000,
-        headers: {
-          'Content-Type': 'application/json',
-        },
         withCredentials: true
       });
       
       if (response.data?.success) {
         setTodos(response.data.todos);
-        toast.success('Todos loaded successfully');
       } else {
         throw new Error(response.data?.message || 'Invalid response format');
       }
@@ -195,13 +191,10 @@ function HomePage() {
       console.error('Fetch error:', err);
       let errorMsg = 'Failed to load todos';
       
-      if (err.code === 'ECONNABORTED') {
-        errorMsg = 'Server is taking too long to respond';
-      } else if (err.response) {
-        errorMsg = err.response.data?.message || 
-                  `Server error: ${err.response.status}`;
+      if (err.response) {
+        errorMsg = err.response.data?.message || `Server error: ${err.response.status}`;
       } else if (err.request) {
-        errorMsg = 'No response from server - check your connection';
+        errorMsg = 'No response from server';
       }
       
       setError(errorMsg);
@@ -211,9 +204,7 @@ function HomePage() {
     }
   };
 
-  useEffect(() => {
-    fetchTodos();
-  }, []);
+  useEffect(() => { fetchTodos(); }, []);
 
   const filteredTodos = todos.filter(todo => {
     const matchesSearch = todo.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -221,10 +212,6 @@ function HomePage() {
     const matchesStatus = statusFilter === 'all' || todo.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  const handleRefresh = () => {
-    fetchTodos();
-  };
 
   const handleStatusColor = (status) => {
     switch(status) {
@@ -234,58 +221,37 @@ function HomePage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-pink-400">Loading todos...</p>
-        </div>
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="mt-4 text-pink-400">Loading todos...</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="p-8 bg-gray-800 rounded-lg max-w-md text-center">
-          <h3 className="text-xl font-bold text-pink-500 mb-4">Error Loading Todos</h3>
-          <p className="text-gray-300 mb-6">{error}</p>
-          <div className="flex gap-4 justify-center">
-            <button 
-              onClick={handleRefresh}
-              className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded text-white"
-            >
-              <FiRefreshCw /> Try Again
-            </button>
-            <button 
-              onClick={() => navigate('/signin')}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded text-white"
-            >
-              Sign In
-            </button>
-          </div>
-        </div>
+  if (error) return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="p-8 bg-gray-800 rounded-lg max-w-md text-center">
+        <h3 className="text-xl font-bold text-pink-500 mb-4">Error Loading Todos</h3>
+        <p className="text-gray-300 mb-6">{error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded text-white"
+        >
+          Try Again
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-              All Tasks ({filteredTodos.length})
-            </h1>
-            <button 
-              onClick={handleRefresh}
-              className="p-2 text-pink-500 hover:text-pink-400 transition-colors"
-              title="Refresh todos"
-            >
-              <FiRefreshCw className={`${loading ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+            All Tasks ({filteredTodos.length})
+          </h1>
           
           <div className="flex gap-4 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
@@ -306,15 +272,14 @@ function HomePage() {
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
               <option value="completed">Completed</option>
             </select>
 
             <button
               onClick={() => navigate('/create-todo')}
-              className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg"
             >
-              <FiPlusCircle /> New Task
+              <FiPlusCircle /> New
             </button>
           </div>
         </div>
@@ -324,20 +289,13 @@ function HomePage() {
             <p className="text-gray-400">
               {todos.length === 0 ? 'No tasks found' : 'No tasks match your filters'}
             </p>
-            <button
-              onClick={handleRefresh}
-              className="mt-4 flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg mx-auto"
-            >
-              <FiRefreshCw /> Refresh
-            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTodos.map(todo => (
               <div 
                 key={todo._id} 
-                className="bg-gray-800 rounded-lg p-6 hover:shadow-lg hover:shadow-pink-500/10 transition-shadow cursor-pointer"
-                onClick={() => navigate(`/todo/${todo._id}`)}
+                className="bg-gray-800 rounded-lg p-6 hover:shadow-lg hover:shadow-pink-500/10 transition-shadow"
               >
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-xl font-semibold truncate">{todo.title}</h3>
@@ -351,16 +309,8 @@ function HomePage() {
                 )}
 
                 <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>
-                    {todo.user?.name || todo.user?.email || 'Unknown user'}
-                  </span>
-                  <span>
-                    {new Date(todo.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </span>
+                  <span>{todo.user?.name || todo.user?.email || 'Unknown user'}</span>
+                  <span>{new Date(todo.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             ))}
