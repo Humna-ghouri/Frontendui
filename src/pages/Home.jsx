@@ -171,14 +171,17 @@ function HomePage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
+  // Define API URL with fallback
+  const API_URL = import.meta.env.VITE_API_URL || 'https://backend-ui-1-a43x.onrender.com';
+
   const fetchTodos = async () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching from:', `${import.meta.env.VITE_API_URL}/api/todos/all`);
+      console.log('Fetching from:', `${API_URL}/api/todos/all`);
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/todos/all`,
+        `${API_URL}/api/todos/all`,
         {
           timeout: 10000,
           headers: {
