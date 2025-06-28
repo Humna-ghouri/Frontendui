@@ -229,9 +229,15 @@ import axios from 'axios';
 import moment from 'moment';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter, FiList, FiClock, FiX } from 'react-icons/fi';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+
+
 
 const Dashboard = () => {
   const { logout } = useContext(AuthContext);
+  const navigate = useNavigate(); // ✅
+  const location = useLocation();
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [stats, setStats] = useState({});
@@ -242,17 +248,25 @@ const Dashboard = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Fetch and calc stats
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/todos/all`);
-        setTasks(res.data);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    fetchTasks();
-  }, []);
+useEffect(() => {
+  const fetchTasks = async () => {
+    try {
+      // const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/todos`);
+      // const data = res.data.todos || res.data;
+      // setTasks(data);
+     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/todos`, {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('token')}`
+  }
+});
+      const data = res.data.todos || res.data;
+      setTasks(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  fetchTasks();
+}, [location.state?.refresh]);
 
   useEffect(() => {
     const statsObj = tasks.reduce((s, t) => {
@@ -273,7 +287,7 @@ const Dashboard = () => {
     setFilteredTasks(ft);
   }, [tasks, searchTerm, filter]);
 
-  const handleCreateTask = () => window.location.assign('/create-task');
+  const handleCreateTask = () => navigate('/create-task');
 
   const handleEditTask = task => {
     setEditingTask(task);
@@ -309,7 +323,39 @@ const Dashboard = () => {
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md relative">
             <button onClick={() => setEditingTask(null)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><FiX /></button>
-            {/* Edit form... same structure */}
+            <form onSubmit={(e) => {
+  e.preventDefault();
+  handleUpdateTask();
+}}>
+  <div className="mb-4">
+    <label className="block text-sm text-gray-300 mb-1">Title</label>
+    <input
+      type="text"
+      className="w-full p-2 bg-gray-800 text-white rounded"
+      value={editFormData.title}
+      onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+      required
+    />
+  </div>
+  <div className="mb-4">
+    <label className="block text-sm text-gray-300 mb-1">Description</label>
+    <textarea
+      className="w-full p-2 bg-gray-800 text-white rounded"
+      value={editFormData.description}
+      onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+    />
+  </div>
+  <div className="flex justify-end">
+    <button
+      type="submit"
+      className="bg-pink-600 px-4 py-2 rounded text-white disabled:opacity-50"
+      disabled={isUpdating}
+    >
+      {isUpdating ? 'Updating...' : 'Update'}
+    </button>
+  </div>
+</form>
+
           </div>
         </div>
       )}

@@ -245,7 +245,7 @@ const SignUp = () => {
     } catch (error) {
       console.error('Signup error:', error);
       let errorMessage = 'Signup failed. Please try again.';
-      
+
       if (error.response) {
         if (error.response.status === 404) {
           errorMessage = 'Endpoint not found. Please contact support.';
@@ -255,7 +255,7 @@ const SignUp = () => {
       } else if (error.request) {
         errorMessage = 'No response from server. Please check your connection.';
       }
-      
+
       setErrors({ form: errorMessage });
       Swal.fire({
         title: 'Error!',

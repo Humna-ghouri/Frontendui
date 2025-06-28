@@ -37,14 +37,14 @@ const handleCreate = async () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true,
+            'Content-Type': 'application/json'
+          }
+          // withCredentials: true,
         }
       );
 
       Swal.fire('Success', 'Task created successfully!', 'success');
-      navigate('/dashboard');
+      navigate('/dashboard', { state: { refresh: true } });
     } catch (error) {
       console.error('Create Error:', error.response?.data || error.message);
       Swal.fire('Error', error.response?.data?.message || 'Something went wrong.', 'error');
@@ -56,7 +56,7 @@ const handleCreate = async () => {
       <div className="max-w-md mx-auto bg-gradient-to-b from-gray-900 to-black rounded-3xl shadow-2xl p-8 md:max-w-2xl transition-all duration-500 hover:shadow-pink-500/50">
         <div className="flex items-center justify-between mb-8">
           <button 
-            onClick={() => navigate('/dashboard')} 
+            onClick={() => navigate('/dashboard', { state: { refresh: true } })} 
             className="text-pink-400 hover:text-pink-600 transform hover:-translate-x-1 hover:scale-110 transition-all duration-300"
             disabled={isLoading}
           >
