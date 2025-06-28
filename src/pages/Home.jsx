@@ -171,7 +171,7 @@ function HomePage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL || 'https://backend-ui-1-a43x.onrender.com';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const fetchTodos = async () => {
     setLoading(true);
