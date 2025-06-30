@@ -19,7 +19,7 @@ function HomePage() {
     
     const BASE_URL = import.meta.env.MODE === 'development'
       ? 'http://localhost:5000'
-      : 'https://backend-ui-1-a43x.onrender.com';
+      : 'https://backendui.onrender.com';
 
 // ✅ RIGHT:
 const response = await axios.get(`${BASE_URL}/api/public`);
