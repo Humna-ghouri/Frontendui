@@ -38,7 +38,7 @@ const Dashboard = () => {
           throw new Error('No authentication token found');
         }
 
-        const response = await axios.get(`https://backend-ui-1-a43x.onrender.com/api/todos`, {
+        const response = await axios.get(`https://backendui.onrender.com/api/todos`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -95,7 +95,7 @@ const Dashboard = () => {
     if (!token) throw new Error('No authentication token found');
 
     const { data } = await axios.put(
-      `https://backend-ui-1-a43x.onrender.com/api/todos/${taskId}`,   // ← use BASE_URL here
+      `https://backendui.onrender.com/api/todos/${taskId}`,   // ← use BASE_URL here
       editFormData,
       {
         headers: {
@@ -146,7 +146,7 @@ const Dashboard = () => {
       if (!token) throw new Error('No authentication token found');
 
       const response = await axios.delete(
-        `https://backend-ui-1-a43x.onrender.com/api/todos/${id}`,   // ← use BASE_URL here too
+        `https://backendui.onrender.com/api/todos/${id}`,   // ← use BASE_URL here too
         {
           headers: {
             Authorization: `Bearer ${token}`

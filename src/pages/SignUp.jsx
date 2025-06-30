@@ -46,7 +46,7 @@ const SignUp = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await axios.post(`https://backend-ui-1-a43x.onrender.com/api/auth/signup`, {
+      const response = await axios.post(`https://backendui.onrender.com/api/auth/signup`, {
         name: formData.name,
         email: formData.email,
         password: formData.password

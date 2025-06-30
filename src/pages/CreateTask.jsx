@@ -36,7 +36,7 @@ const handleCreate = async () => {
       dueDate,
     };
 
-    const response = await axios.post(`https://backend-ui-1-a43x.onrender.com/api/todos`, newTodo, {
+    const response = await axios.post(`https://backendui.onrender.com/api/todos`, newTodo, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
