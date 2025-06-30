@@ -22,7 +22,7 @@ function HomePage() {
       : 'https://backend-ui-1-a43x.onrender.com';
 
 // ✅ RIGHT:
-const response = await axios.get(`https://backend-ui-1-a43x.onrender.com/api/public`);
+const response = await axios.get(`${BASE_URL}/api/public`);
     
     console.log('API Response:', response.data);
 
