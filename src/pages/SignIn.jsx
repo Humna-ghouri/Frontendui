@@ -1,8 +1,11 @@
+
+
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../App';
 import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
+import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -24,39 +27,59 @@ const SignIn = () => {
     setError('');
 
     try {
-      const response = await axios.post('https://backendui.onrender.com/api/auth/signin', {
-        email,
-        password
-      },
-       {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        validateStatus: (status) => status < 500
-      });
+      console.log('Attempting to sign in with:', { email, password });
+      
+      // Use this line if using Vite (recommended)
+      // const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Or use this line if using Create React App
+      // const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      
+      const response = await axios.post(
+        `https://backend-ui-1-a43x.onrender.com/api/auth/signin`, 
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('Login response:', response.data);
 
       if (response.data.success) {
+        if (!response.data.token || !response.data.user) {
+          throw new Error('Invalid response from server');
+        }
+        
         login(response.data.token, response.data.user);
-        navigate('/dashboard');
+        
+        Swal.fire({
+          title: 'Success!',
+          text: 'You have successfully logged in!',
+          icon: 'success',
+          background: '#1a1a1a',
+          color: '#fff'
+        }).then(() => {
+          navigate('/dashboard');
+        });
       } else {
         setError(response.data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Full login error:', error);
+      
       if (error.response) {
-        setError(error.response.data.message || 'Login failed');
+        setError(error.response.data.message || `Login failed (${error.response.status})`);
       } else if (error.request) {
-        setError('Network error. Please try again.');
+        setError('Network error. Please check your connection.');
       } else {
-        setError('An error occurred. Please try again.');
+        setError(error.message || 'An unexpected error occurred');
       }
     } finally {
       setLoading(false);
     }
   };
-  
-  
-
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-black via-gray-900 to-black text-white py-12 px-4 sm:px-6 lg:px-8 font-sans">

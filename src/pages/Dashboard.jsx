@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -11,6 +12,7 @@ import moment from 'moment';
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingTask, setEditingTask] = useState(null);
@@ -23,33 +25,47 @@ const Dashboard = () => {
   });
   const navigate = useNavigate();
 
+  // ✅ Move BASE_URL here so it's available in all functions
+  const BASE_URL = import.meta.env.MODE === 'development'
+    ? 'http://localhost:5000'
+    : 'https://backend-ui-1-a43x.onrender.com';
+
   useEffect(() => {
     const fetchTodos = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get('https://backendui.onrender.com/api/todos', {
-          headers: { Authorization: `Bearer ${token}` }
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await axios.get(`https://backend-ui-1-a43x.onrender.com/api/todos`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-        setTasks(data.todos);
-        setLoading(false);
+
+        const tasksData = response.data?.todos || [];
+        setTasks(tasksData);
+        setError(null);
       } catch (err) {
-        console.error('Fetch Error:', err);
-        Swal.fire({
-          title: 'Error!',
-          text: 'Failed to fetch tasks.',
-          icon: 'error',
-          background: '#1a1a1a',
-          color: '#fff'
-        });
+        console.error('Failed to fetch todos:', err);
+        setError(err.response?.data?.message || 'Failed to load tasks. Please try again.');
+        if (err.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/signin');
+        }
+      } finally {
         setLoading(false);
       }
     };
+
     fetchTodos();
-  }, []);
+  }, [navigate, BASE_URL]);
+
 
   const filteredTasks = tasks.filter(task => {
     if (filter !== 'all' && task.status !== filter) return false;
-    if (searchTerm && !task.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    if (searchTerm && !task.title?.toLowerCase().includes(searchTerm.toLowerCase()))
       return false;
     return true;
   });
@@ -60,95 +76,107 @@ const Dashboard = () => {
     pending: tasks.filter(t => t.status === 'pending').length,
   };
 
-  const handleCreateTask = () => navigate('/loan-request');
+  const handleCreateTask = () => navigate('/create-task');
   
   const handleEditTask = (task) => {
     setEditingTask(task._id);
     setEditFormData({
-      title: task.title,
-      description: task.description,
-      status: task.status,
+      title: task.title || '',
+      description: task.description || '',
+      status: task.status || 'pending',
       priority: task.priority || 'medium',
       dueDate: task.dueDate ? moment(task.dueDate).format('YYYY-MM-DD') : ''
     });
   };
 
-  const handleUpdateTask = async (taskId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const { data } = await axios.put(
-        `https://backendui.onrender.com/api/todos/${taskId}`,
-        editFormData,
-        { headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setTasks(tasks.map(task => 
-        task._id === taskId ? data.todo : task
-      ));
-      
-      setEditingTask(null);
-      Swal.fire({
-        title: 'Success!',
-        text: 'Task updated successfully.',
-        icon: 'success',
-        background: '#1a1a1a',
-        color: '#fff'
-      });
-    } catch (err) {
-      Swal.fire({
-        title: 'Error!',
-        text: 'Failed to update task.',
-        icon: 'error',
-        background: '#1a1a1a',
-        color: '#fff'
-      });
-    }
-  };
+ const handleUpdateTask = async (taskId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No authentication token found');
 
-  const handleDeleteTask = async (id) => {
-    try {
-      const confirm = await Swal.fire({
-        title: 'Are you sure?',
-        text: "This will delete the task!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!',
-        background: '#1a1a1a',
-        color: '#fff',
-        confirmButtonColor: '#ec4899'
-      });
-      
-      if (confirm.isConfirmed) {
-        const token = localStorage.getItem('token');
-        const response = await axios.delete(
-          `https://backendui.onrender.com/api/todos/${id}`, 
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-        
-        if (response.data.success) {
-          setTasks(prevTasks => prevTasks.filter(t => t._id !== id));
-          Swal.fire({
-            title: 'Deleted!',
-            text: 'Task has been deleted.',
-            icon: 'success',
-            background: '#1a1a1a',
-            color: '#fff'
-          });
+    const { data } = await axios.put(
+      `https://backend-ui-1-a43x.onrender.com/api/todos/${taskId}`,   // ← use BASE_URL here
+      editFormData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       }
-    } catch (err) {
-      console.error('Delete Error:', err);
-      Swal.fire({
-        title: 'Error!',
-        text: err.response?.data?.message || 'Failed to delete task',
-        icon: 'error',
-        background: '#1a1a1a',
-        color: '#fff'
-      });
+    );
+
+    setTasks(tasks.map(task =>
+      task._id === taskId ? data.todo : task
+    ));
+    setEditingTask(null);
+    Swal.fire({
+      title: 'Success!',
+      text: 'Task updated successfully.',
+      icon: 'success',
+      background: '#1a1a1a',
+      color: '#fff'
+    });
+  } catch (err) {
+    console.error('Update error:', err);
+    Swal.fire({
+      title: 'Error!',
+      text: err.response?.data?.message || 'Failed to update task.',
+      icon: 'error',
+      background: '#1a1a1a',
+      color: '#fff'
+    });
+  }
+};
+
+
+ const handleDeleteTask = async (id) => {
+  try {
+    const confirm = await Swal.fire({
+      title: 'Are you sure?',
+      text: "This will delete the task!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      background: '#1a1a1a',
+      color: '#fff',
+      confirmButtonColor: '#ec4899'
+    });
+
+    if (confirm.isConfirmed) {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const response = await axios.delete(
+        `https://backend-ui-1-a43x.onrender.com/api/todos/${id}`,   // ← use BASE_URL here too
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data?.success) {
+        setTasks(prevTasks => prevTasks.filter(t => t._id !== id));
+        Swal.fire({
+          title: 'Deleted!',
+          text: 'Task has been deleted.',
+          icon: 'success',
+          background: '#1a1a1a',
+          color: '#fff'
+        });
+      }
     }
-  };
+  } catch (err) {
+    console.error('Delete Error:', err);
+    Swal.fire({
+      title: 'Error!',
+      text: err.response?.data?.message || 'Failed to delete task',
+      icon: 'error',
+      background: '#1a1a1a',
+      color: '#fff'
+    });
+  }
+};
+
 
   if (loading) {
     return (
@@ -156,6 +184,31 @@ const Dashboard = () => {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="mt-4 text-pink-400">Loading tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-tr from-black via-gray-900 to-black flex justify-center items-center">
+        <div className="bg-gradient-to-b from-gray-900 to-black p-8 rounded-xl shadow-lg text-center max-w-md mx-4">
+          <h3 className="text-xl font-bold text-pink-400 mb-2">Error Loading Tasks</h3>
+          <p className="text-gray-300 mb-6">{error}</p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-white transition-colors"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => navigate('/signin')}
+              className="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition-colors"
+            >
+              Login Again
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -256,7 +309,7 @@ const Dashboard = () => {
             className="text-pink-400 hover:text-pink-500 flex items-center space-x-2"
           >
             <FiPlus className="h-5 w-5" />
-            <span>Request Task</span>
+            <span>Create Task</span>
           </button>
         </div>
 

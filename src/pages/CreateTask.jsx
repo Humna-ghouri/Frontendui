@@ -1,132 +1,56 @@
 
 
-// import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-
-// function CreateTask() {
-//   const [title, setTitle] = useState('');
-//   const [description, setDescription] = useState('');
-//   const [error, setError] = useState('');
-//   const navigate = useNavigate();
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-
-//     if (!title || !description) {
-//       setError('Both title and description are required');
-//       return;
-//     }
-
-//     // Get existing tasks from localStorage
-//     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    
-//     // Create new task
-//     const newTask = {
-//       id: Date.now().toString(),
-//       title,
-//       description,
-//       status: 'To Do',
-//       createdAt: new Date().toISOString()
-//     };
-
-//     // Save to localStorage
-//     localStorage.setItem('tasks', JSON.stringify([...tasks, newTask]));
-    
-//     // Redirect to home page after task creation
-//     navigate('/');
-//   };
-
-//   return (
-//     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-//       <h1 className="text-2xl font-bold mb-4">Create New Task</h1>
-      
-//       {error && <p className="text-red-500 mb-4">{error}</p>}
-
-//       <form onSubmit={handleSubmit} className="space-y-4">
-//         <div>
-//           <label className="block text-sm font-medium mb-1">Title</label>
-//           <input
-//             type="text"
-//             value={title}
-//             onChange={(e) => setTitle(e.target.value)}
-//             className="w-full p-2 border rounded"
-//             placeholder="Task title"
-//           />
-//         </div>
-
-//         <div>
-//           <label className="block text-sm font-medium mb-1">Description</label>
-//           <textarea
-//             value={description}
-//             onChange={(e) => setDescription(e.target.value)}
-//             className="w-full p-2 border rounded"
-//             rows="4"
-//             placeholder="Task description"
-//           ></textarea>
-//         </div>
-
-//         <button
-//           type="submit"
-//           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-//         >
-//           Create Task
-//         </button>
-//       </form>
-//     </div>
-//   );
-// }
-
-// export default CreateTask;
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlusCircle, FiArrowLeft } from 'react-icons/fi';
 import Swal from 'sweetalert2';
-import axios from 'axios';
+ import axios from 'axios';
 
 function CreateTask() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState('medium');
+  const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ // ✅ Move BASE_URL here so it's available in all functions
+  const BASE_URL = import.meta.env.MODE === 'development'
+    ? 'http://localhost:5000'
+    : 'https://backend-ui-1-a43x.onrender.com';
 
-    if (!title) {
-      setError('Title is required');
+// Inside handleSubmit function
+const handleCreate = async () => {
+  try {
+    const token = localStorage.getItem('token'); // ✅ token frontend pe saved hai?
+    if (!token) {
+      Swal.fire('Error', 'No token found. Please login again.', 'error');
       return;
     }
 
-    try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        setError('Authentication required. Please login.');
-        return;
-      }
+    const newTodo = {
+      title,
+      description,
+      priority,
+      dueDate,
+    };
 
-      await axios.post(
-        'https://backendui.onrender.com/api/todos',
-        { title, description },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+    const response = await axios.post(`https://backend-ui-1-a43x.onrender.com/api/todos`, newTodo, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true, // optional: if your backend uses credentials
+    });
 
-      Swal.fire({
-        title: 'Success!',
-        text: 'Task created successfully',
-        icon: 'success'
-      }).then(() => navigate('/loan-calculator'));
-
-    } catch (err) {
-      console.error('Error:', err.response?.data || err.message);
-      setError(err.response?.data?.message || err.message || 'Failed to create task');
-    }
-  };
+    Swal.fire('Success', 'Task created successfully!', 'success');
+    navigate('/dashboard'); // or reload tasks
+  } catch (error) {
+    console.error('Create Error:', error.response?.data || error.message);
+    Swal.fire('Error', error.response?.data?.message || 'Something went wrong.', 'error');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-black via-gray-900 to-black text-white py-12 px-4 sm:px-6 lg:px-8 font-sans">
@@ -135,6 +59,7 @@ function CreateTask() {
           <button 
             onClick={() => navigate('/dashboard')} 
             className="text-pink-400 hover:text-pink-600 transform hover:-translate-x-1 hover:scale-110 transition-all duration-300"
+            disabled={isLoading}
           >
             <FiArrowLeft className="h-7 w-7" />
           </button>
@@ -145,12 +70,18 @@ function CreateTask() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-800/60 text-red-300 rounded-xl shadow-inner animate-bounce">
+          <div className="mb-6 p-4 bg-red-800/60 text-red-300 rounded-xl animate-fade-in">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form
+  onSubmit={(e) => {
+    e.preventDefault(); // ⛔ stop page reload
+    handleCreate();     // ✅ call create function
+  }}
+  className="space-y-8"
+>
           <div className="space-y-2">
             <label className="block text-sm font-bold text-pink-400">Task Title*</label>
             <input
@@ -159,6 +90,7 @@ function CreateTask() {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-4 py-3 border-2 border-pink-400 rounded-xl bg-black text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 shadow-inner transition-all duration-300"
               placeholder="Enter your task title..."
+              disabled={isLoading}
               required
             />
           </div>
@@ -171,15 +103,59 @@ function CreateTask() {
               className="w-full px-4 py-3 border-2 border-pink-400 rounded-xl bg-black text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 shadow-inner transition-all duration-300"
               rows="5"
               placeholder="Enter description (optional)..."
+              disabled={isLoading}
             ></textarea>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-pink-400">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-pink-400 rounded-xl bg-black text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 shadow-inner transition-all duration-300"
+                disabled={isLoading}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-pink-400">Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-pink-400 rounded-xl bg-black text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 shadow-inner transition-all duration-300"
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           <button
             type="submit"
-            className="w-full flex items-center justify-center space-x-3 bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-pink-400/50 transition-all duration-500 transform hover:-translate-y-1 hover:scale-105"
+            disabled={isLoading}
+            className={`w-full flex items-center justify-center space-x-3 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-500 transform hover:-translate-y-1 hover:scale-105 ${
+              isLoading 
+                ? 'bg-gray-600 cursor-not-allowed' 
+                : 'bg-pink-600 hover:bg-pink-700 hover:shadow-pink-400/50'
+            }`}
           >
-            <FiPlusCircle className="h-6 w-6 animate-spin-slow" />
-            <span>Create Task</span>
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>
+                <FiPlusCircle className="h-6 w-6 animate-spin-slow" />
+                <span>Create Task</span>
+              </>
+            )}
           </button>
         </form>
       </div>
